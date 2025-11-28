@@ -9,15 +9,18 @@ import requests
 from jose import jwt, JWTError
 
 from .schemas import AuthUser, SignUpRequestDto, ProfileUpdateRequestDto
-from ..config import SUPABASE_URL, SUPABASE_ANON_KEY
-from ..config_auth import (
+from app.config import (
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY,
+    SUPABASE_AUTH_SCHEMA,      # config.py에서 가져오도록 이동
+    SUPABASE_USERS_TABLE,      # config.py에서 가져오도록 이동
+    SUPABASE_PROFILES_TABLE,   # config.py에서 가져오도록 이동
+)
+from app.config_auth import (
     JWT_SECRET_KEY,
     JWT_ALGORITHM,
     JWT_EXPIRE_DAYS,
     KAKAO_USERINFO_URL,
-    SUPABASE_AUTH_SCHEMA,
-    SUPABASE_USERS_TABLE,
-    SUPABASE_PROFILES_TABLE,
 )
 
 # -------------------- 공통 Supabase 헬퍼 -------------------- #
