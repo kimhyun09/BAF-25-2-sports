@@ -6,7 +6,6 @@ import logging
 
 from app.config import OPENAI_API_KEY
 from .tools import (
-    get_profiled_facilities,
     profile_based_sports_facilities,
     current_weather,
     weight_management_plan,
@@ -22,7 +21,6 @@ llm = ChatOpenAI(
 )
 
 tools = [
-    get_profiled_facilities,
     profile_based_sports_facilities,
     current_weather,
     weight_management_plan,
