@@ -4,7 +4,7 @@ import requests
 from typing import List, Optional, Dict, Any
 
 from .config import SUPABASE_URL, SUPABASE_ANON_KEY
-from .weather import is_indoor_only
+from app.modules.bot.weather import is_indoor_only
 
 TABLE_NAME = "songpa_sports_data"
 
