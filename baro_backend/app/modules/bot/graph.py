@@ -5,6 +5,10 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.checkpoint.memory import MemorySaver
 import logging
 
+# 재시도 로직을 위한 라이브러리 (requirements.txt에 tenacity 추가 필요)
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from openai import RateLimitError, APITimeoutError
+
 from app.config import OPENAI_API_KEY
 from .tools import (
     profile_based_sports_facilities,
@@ -15,10 +19,12 @@ from .tools import (
 
 logger = logging.getLogger(__name__)
 
+# 모델 설정 (일시적 오류 자동 재시도 max_retries 추가)
 llm = ChatOpenAI(
     model="gpt-4o-mini",
     temperature=0.3,
     api_key=OPENAI_API_KEY,
+    max_retries=3, 
 )
 
 tools = [
@@ -96,28 +102,44 @@ SYSTEM_PROMPT = """
 # 메모리 저장소 생성
 memory = MemorySaver()
 
-# [수정됨] create_react_agent에서 messages_modifier 제거 (오류 해결)
+# [수정됨] state_modifier -> prompt로 변경
+# 최신 langgraph 버전에서는 prompt 인자를 사용하여 시스템 메시지를 설정합니다.
 agent = create_react_agent(
     llm, 
     tools, 
-    checkpointer=memory
+    checkpointer=memory,
+    prompt=SYSTEM_PROMPT 
 )
+
+# [재시도 로직] Rate Limit 등의 에러 발생 시 자동 재시도
+@retry(
+    retry=retry_if_exception_type((RateLimitError, APITimeoutError)),
+    wait=wait_exponential(multiplier=1, min=2, max=20),
+    stop=stop_after_attempt(5),
+    reraise=True
+)
+def invoke_agent_with_retry(user_message: str, config: dict):
+    # prompt에 이미 SYSTEM_PROMPT가 포함되었으므로 여기서는 사용자 메시지만 전달
+    return agent.invoke(
+        {
+            "messages": [
+                HumanMessage(content=user_message), 
+            ]
+        },
+        config=config
+    )
 
 def run_agent(user_message: str, thread_id: str) -> str:
     try:
         # thread_id를 config에 설정 (이전 대화 기억용)
         config = {"configurable": {"thread_id": thread_id}}
         
-        # [수정됨] 실행할 때마다 시스템 프롬프트를 맨 앞에 끼워넣음
-        result = agent.invoke(
-            {
-                "messages": [
-                    SystemMessage(content=SYSTEM_PROMPT), # 시스템 규칙 주입
-                    HumanMessage(content=user_message),   # 사용자 메시지
-                ]
-            },
-            config=config
-        )
+        # 재시도 함수 호출
+        result = invoke_agent_with_retry(user_message, config)
+        
+    except RateLimitError:
+        logger.error("OpenAI Rate Limit Exceeded even after retries.")
+        raise 
     except Exception as e:
         logger.exception("LangGraph agent.invoke 중 오류")
         raise
