@@ -11,7 +11,7 @@ from app.modules.message.schemas import (
 from app.modules.message.service import MessageService
 
 # 실제 프로젝트의 auth 모듈에 맞게 import 수정
-from app.modules.auth import get_current_user
+from app.modules.auth.deps import get_current_user_id as get_current_user
 
 
 router = APIRouter(
