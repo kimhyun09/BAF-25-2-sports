@@ -8,7 +8,9 @@ import uuid
 from typing import List
 from datetime import datetime
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends  # <--- [추가] Depends
+from app.modules.auth.deps import get_current_auth_user  # <--- [추가]
+from app.modules.auth.schemas import AuthUser            # <--- [추가]
 
 # [추가] DB 클라이언트 임포트
 from app.core.supabase import supabase_client
@@ -93,16 +95,29 @@ def get_messages(room_id: str) -> List[ChatMessage]:
 
 
 @router.post("/rooms/{room_id}/messages", response_model=BotResponse)
-def send_message(room_id: str, req: BotRequest) -> BotResponse:
+def send_message(
+    room_id: str, 
+    req: BotRequest,
+    user: AuthUser = Depends(get_current_auth_user)  # <--- [추가] 사용자 정보 주입
+) -> BotResponse:
     logger.info("send_message called: room_id=%s, text=%s", room_id, req.text)
 
-    # [수정] 메모리에 직접 append 하던 로직 제거
-    # 대신 process_bot_message 내부에서 DB 저장까지 처리되도록 위임
-
+    # [수정] 사용자 프로필 정보를 포함하여 ChatRequest 생성
     agent_req = AgentChatRequest(
         message=req.text,
         thread_id=room_id,
         room_id=room_id,
+        # --- 사용자 정보 매핑 ---
+        user_id=str(user.id),
+        nickname=user.nickname,
+        gender=user.gender,
+        age=user.age,                 # AuthUser.age -> ChatRequest.age
+        height=user.height_cm,        # AuthUser.height_cm -> ChatRequest.height
+        weight=user.weight_kg,        # AuthUser.weight_kg -> ChatRequest.weight
+        skill_level=user.level,       # AuthUser.level -> ChatRequest.skill_level
+        favorite_sports=user.preferred_sports, # AuthUser.preferred_sports -> ChatRequest.favorite_sports
+        latitude=user.latitude,
+        longitude=user.longitude
     )
     
     # 이 함수 내부에서 유저 메시지 DB 저장 -> 랭체인 실행 -> 봇 응답 DB 저장 수행

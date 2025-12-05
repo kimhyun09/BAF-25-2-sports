@@ -26,6 +26,7 @@ class ChatRequest(BaseModel):
     nickname: str | None = None
     gender: str | None = None
     birth_date: str | None = None   # "YYYY-MM-DD" 형식
+    age: int | None = None
 
     # (2) 신체 정보
     height: float | None = None        # cm
