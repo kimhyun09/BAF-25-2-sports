@@ -49,6 +49,8 @@ def process_bot_message(req: ChatRequest) -> str:
     if req.birth_date:
         age = calculate_age(req.birth_date)
         if age > 0: user_context.append(f"나이: {age}세")
+    elif req.age:  # <--- [추가] birth_date 대신 age가 들어온 경우 처리
+        user_context.append(f"나이: {req.age}세")
     if req.height: user_context.append(f"키: {req.height}cm")
     if req.weight: user_context.append(f"체중: {req.weight}kg")
     if req.muscle_mass: user_context.append(f"골격근량: {req.muscle_mass}kg")
