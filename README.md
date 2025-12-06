@@ -120,6 +120,11 @@ Baro/
 | <img src="./app images/settings.png" width="230"> | <img src="./app images/settings profile.png" width="230"> |
 | 설정 메인 | 프로필 수정 화면 |
 
+# 백엔드
+설명 필요
+
+# 데이터베이스
+설명 필요
 
 
 # 팀소개
@@ -127,4 +132,4 @@ Baro/
 | 팀원   | 김현   | 서정유 | 최연식  |
 |--------|------------------------|-----------------------------|-----------------------------|
 | 주소   | [@kimhyun09](https://github.com/kimhyun09) |[@seojeongyoo](https://github.com/seojeongyoo)  | [@yeonsik-choi](https://github.com/yeonsik-choi)|
-| 역할   | 안드로이드 전체, 서버 일부, 목업 데이터 설계 | DB 설계 및 데이터 정리        | 챗봇 개발, 서버 일부        |
+| 역할   | 안드로이드 전체<br>서버 일부<br>목업 데이터 설계 | DB 설계<br>데이터 정리| 챗봇 개발<br>서버일부        |
